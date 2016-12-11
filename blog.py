@@ -145,6 +145,7 @@ class Post(db.Model):
         else:
             p.likes = 1
         p.put()
+        p.render()
   
 class Comment(db.Model):
     post_reference = db.StringProperty(required = True)
@@ -269,8 +270,8 @@ class EditPost(BlogHandler):
             self.render("newpost.html", subject=subject, content=content)
         else:
             error = "you can only edit your own posts"
-            #self.render("/front.html", error=error)
-            self.redirect("/", error=error)
+            self.render("/front.html", error=error)
+            #self.redirect("/", error=error)
 
             
     # post required for form input             
@@ -300,6 +301,16 @@ class LikePost(BlogHandler):
     #retreive values p.post_id
     def get(self, post_id):
         # if user is logged in and not the poster...
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        # not sure this works/ after get post and check 
+        if self.user.name == post.user :
+            error = "you ( " + self.user.name + ") can not like posts by " + post.user 
+            self.render("/front.html", error=error)
+            return
+            #self.redirect("/", error=error)
+
+        
         
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
