@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  {% for p in posts %}
+ 
+          {{ p.render() | safe  }}
+          ----
+           {% for c in comments %}
+           {%  if c.post_reference == p.subject     %}
+             {{ c.render() |safe}}
+           {% endif %}
+           {% endfor %}
+         
+         
+           <br><br>
+    
+  {% endfor %} 
+
+
+{% endblock %}

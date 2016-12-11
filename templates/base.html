@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+ 
+  <link rel="stylesheet" type="text/css" href="/static/bootstrap.css" >
+  <link rel="stylesheet" type="text/css" href="/static/main.css" >
+  <!--Mobile-->
+  <meta name="viewport" content="width-device-width, initial-scale=1">
+ <title>Labor, Happiness and Grace</title>
+</head>
+
+<body>
+  <div class="container">
+  <div class="col-md-12">
+  <a href="/blog" class="main-title"></a>
+    <div class="thumbnail text-center">
+  <figure class="figure">
+    <img  src="/img/BayFog.png" class="img-responsive center-block" alt="Valley with Fog">
+    <div class="caption"><h2>Act Local, Think Global</h2></div>
+ </figure>
+  </div>
+
+  <div class="login-area">
+    {% if user %}
+      {{user.name}} (<a class="login-link" href="/logout">logout</a>)
+      |
+       <a class="login-link" href="/blog/newpost">new post</a>
+       |
+       <a class="login-link" href="/">View Blog</a>
+    {% else %}
+      <a class="login-link" href="/login">login</a>
+      |
+      <a class="login-link" href="/signup">signup</a>   
+    {% endif %}
+  </div>
+
+  <div id="content">
+  {% block content %}
+  {% endblock %}
+  </div>
+    
+  </div>
+  </div> 
+</body>
+
+</html>
+

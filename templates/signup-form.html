@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+  
+<html>
+  <head>
+  <link rel="stylesheet" href="/static/bootstrap.css" />
+  <link rel="stylesheet" href="/static/main.css" />
+  <!--Mobile-->
+  <meta name="viewport" content="width-device-width, initial-scale=1">
+  <title>Labor, Happiness and Grace</title>
+    
+    
+    <title>Sign Up</title>
+    <style type="text/css">
+      .label {text-align: right}
+      .error {color: red}
+    </style>
+
+  </head>
+
+  <body>
+    <div class="container">
+    <div class="col-md-12">
+  <div class="thumbnail text-center">
+    <figure class="figure">
+    <img  src="/static/slice.jpg" class="img-responsive" alt="Valley with Fog">
+    </figure>
+  </div>
+    
+    <h2>Signup</h2>
+    <form method="post" >
+      <table>
+        <tr>
+          <td class="label">
+            Username
+          </td>
+          <td>
+            <input type="text" name="username" value="{{username}}">
+          </td>
+          <td class="error">
+            {{error_username}}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="label">
+            Password
+          </td>
+          <td>
+            <input type="password" name="password" value="">
+          </td>
+          <td class="error">
+            {{error_password}}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="label">
+            Verify Password
+          </td>
+          <td>
+            <input type="password" name="verify" value="">
+          </td>
+      </table>
+        </body>
+    </div>
+    <input type="submit">
+</form>
+</div>
+</html>

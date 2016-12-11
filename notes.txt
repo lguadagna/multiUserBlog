@@ -1,0 +1,48 @@
+
+
+On this page are some links to tutorials on google app engine
+https://cloud.google.com/sdk/auth_success
+
+gcloug components list
+gcloud components install <component id>
+
+
+•Deploy your project with 
+gcloud app deploy.
+
+on the PC at office anyway. this can only be run in the windows shell, not in the git/bash shell
+
+
+•View your project at unique-name.appspot.com.
+•You should see “Hello World!”
+
+•When developing locally, you can use 
+
+dev_appserver.py  .  <- in the direcotory containing app.yaml
+
+
+to run a copy of your app on your own computer, and access it at http://localhost:8080/.
+
+
+https://code.google.com/p/googleappengine/issues/detail?id=11001
+I also have this problem.
+Set mime-type is temporary solution for it.
+
+- url: /server/static/css/*
+  mime_type: text/css
+    static_dir: server/static/css
+
+
+
+    Use POST for destructive actions such as creation (I'm aware of the irony), editing, and deletion, because you can't hit a POST action in the address bar of your browser. Use GET when it's safe to allow a person to call an action. So a URL like:
+
+    http://myblog.org/admin/posts/delete/357
+
+    Should bring you to a confirmation page, rather than simply deleting the item. It's far easier to avoid accidents this way.
+
+    POST is also more secure than GET, because you aren't sticking information into a URL. And so using GET as the method for an HTML form that collects a password or other sensitive information is not the best idea.
+
+    One final note: POST can transmit a larger amount of information than GET. I don't remember the exact constraints of each, but the advantage is significant.
+ Responses to GET requests might be cahched. Responses to POSTs must not. 
+
+
