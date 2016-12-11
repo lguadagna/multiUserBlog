@@ -67,7 +67,7 @@ def render_post(response, post):
 
 class MainPage(BlogHandler):
   def get(self):
-      self.write('Welcome to the Blog of Good Books')
+      self.write('Wholesome ideas for you and the planet')
 
 
 ##### user stuff
@@ -249,27 +249,34 @@ class CommentPost(BlogHandler):
 class EditPost(BlogHandler):
     #retreive values p.post_id
     def get(self, post_id):
+        # if logged in ..
+        if not self.user:         
+            self.redirect("/login")
+            
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
+        
         if not post:
             self.error(404)
             return
         
-        if not self.user:
-            self.redirect('/blog')
-            
-        subject = post.subject
-        content = post.content
-        # lmg - set the user of the post
-        user = self.user.name
+        # not sure this works/ after get post and check 
+        if self.user.name == post.user :
+            subject = post.subject
+            content = post.content
+            # lmg - set the user of the post
+            user = self.user
+            self.render("newpost.html", subject=subject, content=content)
+        else:
+            error = "you can only edit your own posts"
+            #self.render("/front.html", error=error)
+            self.redirect("/", error=error)
 
-        self.render("newpost.html", subject=subject, content=content)
-            
             
     # post required for form input             
     def post(self, post_id):
             if not self.user:
-                self.redirect('/blog')
+                self.redirect('/login.html')
     
             subject = self.request.get('subject')
             content = self.request.get('content')
@@ -292,6 +299,8 @@ class EditPost(BlogHandler):
 class LikePost(BlogHandler):
     #retreive values p.post_id
     def get(self, post_id):
+        # if user is logged in and not the poster...
+        
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
         if not post:
