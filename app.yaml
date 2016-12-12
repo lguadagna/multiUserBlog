@@ -9,6 +9,11 @@ handlers:
 
 - url: /img
   static_dir: img
+  #upload: /img/.*
+
+# - url: /(.*\.(gif|png|jpg))$
+#   static_files: img/\1
+   #upload: img/.*\.(gif|png|jpg)$
 
 - url: /.*
   script: blog.app

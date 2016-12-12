@@ -145,7 +145,7 @@ class Post(db.Model):
         else:
             p.likes = 1
         p.put()
-        p.render()
+
   
 class Comment(db.Model):
     post_reference = db.StringProperty(required = True)
@@ -173,13 +173,13 @@ class PostPage(BlogHandler):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
         subject = post.subject
-        comments = db.GqlQuery(  "select *  from Comment where post_reference = :subject  order by created desc ", subject=subject ) 
+        
+        s = db.GqlQuery(  "select *  from Comment where post_reference = :subject  order by created desc ", subject=subject ) 
  
         if not post:
             self.error(404)
             return
-
-        self.render("permalink.html", post = post, comments= comments, post_id = subject)
+        self.render("permalink.html", post = post, comments=s, post_id = subject)
 
 class NewPost(BlogHandler):
     def get(self):
@@ -250,28 +250,41 @@ class CommentPost(BlogHandler):
 class EditPost(BlogHandler):
     #retreive values p.post_id
     def get(self, post_id):
-        # if logged in ..
-        if not self.user:         
-            self.redirect("/login")
-            
+        # user login block from Comment 
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        
         if not post:
             self.error(404)
             return
         
-        # not sure this works/ after get post and check 
-        if self.user.name == post.user :
-            subject = post.subject
-            content = post.content
-            # lmg - set the user of the post
-            user = self.user
-            self.render("newpost.html", subject=subject, content=content)
+        if self.user:   # if user logged in 
+            # not sure this works
+            if self.user.name == post.user :
+                subject = post.subject
+                content = post.content
+                # lmg - set the user of the post
+                user = self.user
+                self.render("newpost.html", subject=subject, content=content)
+                
+            else:
+                # we need to query to display a good front page
+                posts = db.GqlQuery("select * from Post order by created desc limit 10")
+                comments = db.GqlQuery(  "select *  from Comment order by created desc ") 
+ 
+                error = "you can only edit your own posts "
+                self.render('front.html', posts = posts , comments= comments, error=error)
+                
+                #self.redirect("/", error=error)
+            
+
         else:
-            error = "you can only edit your own posts"
-            self.render("/front.html", error=error)
-            #self.redirect("/", error=error)
+            self.redirect("/login")
+        
+
+        
+        
+        
+       
 
             
     # post required for form input             
@@ -305,8 +318,12 @@ class LikePost(BlogHandler):
         post = db.get(key)
         # not sure this works/ after get post and check 
         if self.user.name == post.user :
+            # query so you get a good front page
+            posts = db.GqlQuery("select * from Post order by created desc limit 10")
+            comments = db.GqlQuery(  "select *  from Comment order by created desc ") 
+           
             error = "you ( " + self.user.name + ") can not like posts by " + post.user 
-            self.render("/front.html", error=error)
+            self.render("/front.html", posts=posts, comments=comments, error=error)
             return
             #self.redirect("/", error=error)
 

@@ -4,14 +4,32 @@ On this page are some links to tutorials on google app engine
 https://cloud.google.com/sdk/auth_success
 
 gcloug components list
+
+multiuserblog-151616      multiUserBlog  404264612839
+my-project-1473541941708  My Project     670176247936
+
+
+
 gcloud components install <component id>
 
 
 •Deploy your project with 
 gcloud app deploy.
 
-on the PC at office anyway. this can only be run in the windows shell, not in the git/bash shell
+c:\Dropbox\work\nano\multiUserBlog>gcloud app deploy --project multiuserblog-151616
+You are about to deploy the following services:
+ - multiuserblog-151616/default/20161211t102106 (from [c:\Dropbox\work\nano\multiUserBlog\app.yaml])
+     Deploying to URL: [https://multiuserblog-151616.appspot.com]
 
+-- these commands only available in google power shell 
+
+Deployed service [default] to [https://multiuserblog-151616.appspot.com]
+
+You can read logs from the command line by running:
+  $ gcloud app logs read -s default
+
+To view your application in the web browser run:
+  $ gcloud app browse
 
 •View your project at unique-name.appspot.com.
 •You should see “Hello World!”
