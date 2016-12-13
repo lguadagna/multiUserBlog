@@ -15,6 +15,7 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
 
 secret = 'LisaGuadagna'
+status = ""
 
 def render_str(template, **params):
     t = jinja_env.get_template(template)
@@ -191,6 +192,7 @@ class NewPost(BlogHandler):
     def post(self):
         if not self.user:
             self.redirect('/blog')
+            return
 
         subject = self.request.get('subject')
         content = self.request.get('content')
@@ -206,7 +208,7 @@ class NewPost(BlogHandler):
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
             error = "subject and content, please!"
-            self.render("newpost.html", subject=subject, content=content, error=error)
+            self.render("newpost.html", subject=subject, content=content, error=error, task="new")
 # end NewPost(BlogHandler)
 
 class CommentPost(BlogHandler):
@@ -245,7 +247,50 @@ class CommentPost(BlogHandler):
             self.render("commentpost.html", content=content, error=error)
 # end CommentPost(BlogHandler)
 
+# Delete Post
 
+class DeletePost(BlogHandler):
+    #retreive values p.post_id
+    def get(self, post_id):
+        # user login block from Comment 
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+        if not post:
+            self.error(404)
+            return
+        
+        if self.user:   # if user logged in 
+            # not sure this works
+            if self.user.name == post.user :
+               db.delete(key)
+               error = "blog entry deleted "
+
+            else:
+                # we need to query to display a good front page
+                error = "you are loggeed in as: %s, post is from %s " %(self.user.name, post.user)
+
+            posts = db.GqlQuery("select * from Post order by created desc limit 10")
+            comments = db.GqlQuery(  "select *  from Comment order by created desc ") 
+
+            self.redirect("/")
+          
+            #self.redirect("/", error=error) 
+
+        else:
+            self.redirect("/login")
+               
+    # post required for form input             
+    def post(self, post_id):
+            if not self.user:
+                self.redirect('/login.html')
+                return
+            
+            self.redirect('/')
+    
+            
+    
+               
+# end DeletePost(BlogHandler)
 
 class EditPost(BlogHandler):
     #retreive values p.post_id
@@ -264,7 +309,7 @@ class EditPost(BlogHandler):
                 content = post.content
                 # lmg - set the user of the post
                 user = self.user
-                self.render("newpost.html", subject=subject, content=content)
+                self.render("newpost.html", subject=subject, content=content, post_id=post_id, task="edit")
                 
             else:
                 # we need to query to display a good front page
@@ -279,18 +324,12 @@ class EditPost(BlogHandler):
 
         else:
             self.redirect("/login")
-        
-
-        
-        
-        
-       
-
-            
+               
     # post required for form input             
     def post(self, post_id):
             if not self.user:
                 self.redirect('/login.html')
+                return
     
             subject = self.request.get('subject')
             content = self.request.get('content')
@@ -313,9 +352,18 @@ class EditPost(BlogHandler):
 class LikePost(BlogHandler):
     #retreive values p.post_id
     def get(self, post_id):
-        # if user is logged in and not the poster...
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
+        if self.user:
+             # if user is logged in and not the poster...
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            
+            
+        else:
+            self.redirect("/login")
+            return
+        
+        
+       
         # not sure this works/ after get post and check 
         if self.user.name == post.user :
             # query so you get a good front page
@@ -446,6 +494,7 @@ app = webapp2.WSGIApplication([('/', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
                                ('/blog/newpost', NewPost),
                                ('/blog/editpost/([0-9]+)', EditPost),
+                               ('/blog/deletepost/([0-9]+)', DeletePost),
                                ('/blog/newcomment/([0-9]+)', CommentPost),
                                ('/blog/like/([0-9]+)', LikePost)
                                ],

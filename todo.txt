@@ -10,3 +10,7 @@ They receive an error message if they disobey this rule.
 
 •Users can comment on posts. 1/2
 
+submit button on posts
+edit on post when not logged in needs to direct somewhere
+error needs go back button 
+
