@@ -15,7 +15,6 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
 
 secret = 'LisaGuadagna'
-status = ""
 
 def render_str(template, **params):
     t = jinja_env.get_template(template)
@@ -68,8 +67,7 @@ def render_post(response, post):
 
 class MainPage(BlogHandler):
   def get(self):
-      self.write('Wholesome ideas for you and the planet')
-
+      self.write('Wholesome ideas for you and the environment')
 
 ##### user stuff
 def make_salt(length = 5):
@@ -133,20 +131,27 @@ class Post(db.Model):
     likes = db.RatingProperty()
     created = db.DateTimeProperty(auto_now_add = True)
     last_modified = db.DateTimeProperty(auto_now = True)
-  #  user=blog_key()
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self)
     
-    def upvote(self):
+    def upvote(self, currentUser):
         p = self
-        if p.likes >= 1: 
+        u = currentUser
+        # count number of likes in db on this post and with current logged in user
+        all_likes = db.GqlQuery("select * from Like where user = :user and post_reference = :post_ref", user=u , post_ref = p.subject)
+        # update likes attribute on post
+        if all_likes.count() < 1:
+            l = Like(post_reference=p.subject, user=u )
+            l.put()
             p.likes = p.likes + 1
-        else:
-            p.likes = 1
-        p.put()
+            p.put()
 
+class Like(db.Model):
+    post_reference = db.StringProperty(required = True)
+    user = db.StringProperty()
+    
   
 class Comment(db.Model):
     post_reference = db.StringProperty(required = True)
@@ -164,17 +169,13 @@ class BlogFront(BlogHandler):
         #posts = greetings = Post.all().order('-created')
         posts = db.GqlQuery("select * from Post order by created desc limit 10")
         comments = db.GqlQuery(  "select *  from Comment order by created desc ") 
- 
         self.render('front.html', posts = posts , comments= comments)
-        # include comments on the front page also ...
-     
 
 class PostPage(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        subject = post.subject
-        
+        subject = post.subject  
         s = db.GqlQuery(  "select *  from Comment where post_reference = :subject  order by created desc ", subject=subject ) 
  
         if not post:
@@ -185,7 +186,8 @@ class PostPage(BlogHandler):
 class NewPost(BlogHandler):
     def get(self):
         if self.user:
-            self.render("newpost.html")
+            # task is to show or not show the delete button on this page 
+            self.render("newpost.html", task="new")
         else:
             self.redirect("/login")
 
@@ -198,15 +200,15 @@ class NewPost(BlogHandler):
         content = self.request.get('content')
         # lmg - set the user of the post
         user = self.user.name
-        
 
         if subject and content:
             # lmg added user
-            p = Post(parent = blog_key(), subject = subject, content = content, user=user, likes=1, BlogHandler=BlogHandler)
-            # this is storing the data in the database
+            p = Post(parent = blog_key(), subject = subject, content = content, user=user, likes=0, BlogHandler=BlogHandler)
             p.put()
-            self.redirect('/blog/%s' % str(p.key().id()))
+            self.redirect ("/")
         else:
+            # storing the data in the database
+            self.redirect('/blog/%s' % str(p.key().id()))
             error = "subject and content, please!"
             self.render("newpost.html", subject=subject, content=content, error=error, task="new")
 # end NewPost(BlogHandler)
@@ -226,13 +228,10 @@ class CommentPost(BlogHandler):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)   
         subject=post.subject
-
         content = self.request.get('content')
- 
         # lmg - set the user of the post
         user = self.user.name
         
-
         if content:
             #post_reference 
             #user 
@@ -248,11 +247,12 @@ class CommentPost(BlogHandler):
 # end CommentPost(BlogHandler)
 
 # Delete Post
-
 class DeletePost(BlogHandler):
     #retreive values p.post_id
     def get(self, post_id):
-        # user login block from Comment 
+        # user login block from Comment
+        if post_id == "":
+            self.redirect("/")
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
         if not post:
@@ -265,30 +265,26 @@ class DeletePost(BlogHandler):
                db.delete(key)
                error = "blog entry deleted "
 
-            else:
-                # we need to query to display a good front page
+            else:  
                 error = "you are loggeed in as: %s, post is from %s " %(self.user.name, post.user)
-
+            # we need to query to display a good front page
             posts = db.GqlQuery("select * from Post order by created desc limit 10")
             comments = db.GqlQuery(  "select *  from Comment order by created desc ") 
 
             self.redirect("/")
-          
-            #self.redirect("/", error=error) 
-
+        # if not self.user....   
         else:
             self.redirect("/login")
                
     # post required for form input             
     def post(self, post_id):
+            if post_id == "":
+                self.redirect("/")
             if not self.user:
                 self.redirect('/login.html')
                 return
             
-            self.redirect('/')
-    
-            
-    
+            self.redirect('/') 
                
 # end DeletePost(BlogHandler)
 
@@ -309,8 +305,7 @@ class EditPost(BlogHandler):
                 content = post.content
                 # lmg - set the user of the post
                 user = self.user
-                self.render("newpost.html", subject=subject, content=content, post_id=post_id, task="edit")
-                
+                self.render("newpost.html", subject=subject, content=content, post_id=post_id, task="edit")               
             else:
                 # we need to query to display a good front page
                 posts = db.GqlQuery("select * from Post order by created desc limit 10")
@@ -318,9 +313,6 @@ class EditPost(BlogHandler):
  
                 error = "you can only edit your own posts "
                 self.render('front.html', posts = posts , comments= comments, error=error)
-                
-                #self.redirect("/", error=error)
-            
 
         else:
             self.redirect("/login")
@@ -335,8 +327,6 @@ class EditPost(BlogHandler):
             content = self.request.get('content')
             # lmg - set the user of the post
             user = self.user.name
-            
-    
             if subject and content:
                 # lmg added user
                 p = Post(parent = blog_key(), subject = subject, content = content, user=user, likes=1, BlogHandler=BlogHandler)
@@ -355,15 +345,11 @@ class LikePost(BlogHandler):
         if self.user:
              # if user is logged in and not the poster...
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-            post = db.get(key)
-            
-            
+            post = db.get(key)    
         else:
             self.redirect("/login")
             return
-        
-        
-       
+             
         # not sure this works/ after get post and check 
         if self.user.name == post.user :
             # query so you get a good front page
@@ -375,14 +361,10 @@ class LikePost(BlogHandler):
             return
             #self.redirect("/", error=error)
 
-        
-        
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        post = db.get(key)
         if not post:
             self.error(404)
             return
-        post.upvote()
+        post.upvote(self.user.name)
         self.redirect('/') # this really should update page dom
 
     #def post(self):
@@ -391,19 +373,19 @@ class LikePost(BlogHandler):
 
 
 
-USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-def valid_username(username):
-    return username and USER_RE.match(username)
-
-PASS_RE = re.compile(r"^.{3,20}$")
-def valid_password(password):
-    return password and PASS_RE.match(password)
-
-EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
-def valid_email(email):
-    return not email or EMAIL_RE.match(email)
-
 class Signup(BlogHandler):
+    USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+    def valid_username(username):
+        return username and USER_RE.match(username)
+
+    PASS_RE = re.compile(r"^.{3,20}$")
+    def valid_password(password):
+        return password and PASS_RE.match(password)
+
+    EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
+    def valid_email(email):
+        return not email or EMAIL_RE.match(email) 
+    
     def get(self):
         self.render("signup-form.html")
 

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>new post</h2>
+  <h2>New Post</h2>
 
     <form method="post">
       <label>
@@ -17,6 +17,9 @@
       <div class="error">{{error}}</div>
 
       <input type="submit">
-      <a href="/">Cancel</a>
+      <a href="/"> <button type="button"> Cancel </button> </a>
+      {% if task == "edit" %}
+      <a href="{{ '/blog/deletepost/%s' %post_id }} "{{post_id}} ><button type="button"> Delete </button> </a>
+      {% endif %}
     </form>
 {% endblock %}

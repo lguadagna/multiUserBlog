@@ -2,6 +2,7 @@
 
 {% block content %}
  <div class="error"> <h3>{{error}}</h3> </div>
+ <div class="error"> <h3>{{status}}</h3> </div>
   {% for p in posts %}
  
           {{ p.render() | safe  }}
