@@ -64,3 +64,11 @@ Set mime-type is temporary solution for it.
  Responses to GET requests might be cahched. Responses to POSTs must not. 
 
 
+ Installation
+
+    Using Sublime Package Control. Use cmd+shift+P shortcut then Package Control: Install Package. Look for Python PEP8 Autoformat and install it.
+    Manually: Download an archive of Python PEP8 Autoformat.
+
+https://packagecontrol.io/packages/Python%20PEP8%20Autoformat
+
+cntrl-shift-8 to run the autopep formatter

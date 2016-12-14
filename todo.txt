@@ -12,5 +12,16 @@ They receive an error message if they disobey this rule.
 
 submit button on posts
 edit on post when not logged in needs to direct somewhere
-error needs go back button 
+error needs go back button
 
+
+Comment block:
+
+  """
+   method/class name: short description
+   Args:
+        arg1 (data type: int/str/ etc): argument description
+          etc ...
+   Returns:
+     return value description
+				          """

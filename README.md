@@ -1,8 +1,8 @@
 # multiUserBlog
 Udacity project 
 
-This project is hosted on google app engine at this address:
 
+This project is hosted on google app engine at this address:
 
 **https://multiuserblog-151616.appspot.com/**
 
@@ -24,5 +24,5 @@ To test locally:
 then you can use your browser to view locally at: 
 http://localhost:8080
 
-
+It uses jinja2 templates to serve the web pages. Data is stored with google app engine. 
 
