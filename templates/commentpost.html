@@ -13,6 +13,8 @@
 
       <input type="submit">
       <a href="/"> <button type="button"> Cancel </button> </a>
-
+       {% if task == "edit" %}
+      <a href="{{ '/blog/deletecomment/%s' %post_id }} "{{post_id}} ><button type="button"> Delete </button> </a>
+      {% endif %}
     </form>
 {% endblock %}

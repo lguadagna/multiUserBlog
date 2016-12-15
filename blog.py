@@ -284,9 +284,7 @@ class CommentPost(BlogHandler):
             self.redirect('/')
         else:
             error = "content, please!"
-            self.render("commentpost.html", content=content, error=error)
-# end CommentPost(BlogHandler)
-
+            self.render("commentpost.html", content=content, error=error , task="edit")
 # Delete Post
 
 
@@ -477,6 +475,53 @@ class EditComment(BlogHandler):
 
 # end EditComment(BlogHandler)
 
+# Delete Comment
+
+class DeleteComment(BlogHandler):
+    # retreive values p.post_id
+
+    def get(self, comment_id):
+        # user login block from Comment
+        if comment_id == "":
+            self.redirect("/")
+        key = db.Key.from_path('Comment', int(comment_id), parent=blog_key())
+        comment = db.get(key)
+        if not comment:
+            self.error(404)
+            return
+
+        if self.user:   # if user logged in
+            # not sure this works
+            if self.user.name == comment.user:
+                db.delete(key)
+                error = "blog entry deleted "
+
+            else:
+                error = "you are loggeed in as: %s, comment is from %s " % (
+                    self.user.name, comment.user)
+            # we need to query to display a good front page
+            posts = db.GqlQuery(
+                "select * from Post order by created desc limit 10")
+            comments = db.GqlQuery(
+                "select *  from Comment order by created desc ")
+
+            self.redirect("/")
+        # if not self.user....
+        else:
+            self.redirect("/login")
+
+    # post required for form input
+    def post(self, post_id):
+        if post_id == "":
+            self.redirect("/")
+        if not self.user:
+            self.redirect('/login.html')
+            return
+
+        self.redirect('/')
+
+# end DeleteComment(BlogHandler)
+
 
 class LikePost(BlogHandler):
     # retreive values p.post_id
@@ -637,6 +682,7 @@ app = webapp2.WSGIApplication([('/', BlogFront),
                                ('/blog/deletepost/([0-9]+)', DeletePost),
                                ('/blog/newcomment/([0-9]+)', CommentPost),
                                ('/blog/editcomment/([0-9]+)', EditComment),
+                               ('/blog/deletecomment/([0-9]+)', DeleteComment),
                                ('/blog/like/([0-9]+)', LikePost)
                                ],
                               debug=True)
