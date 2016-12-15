@@ -284,7 +284,8 @@ class CommentPost(BlogHandler):
             self.redirect('/')
         else:
             error = "content, please!"
-            self.render("commentpost.html", content=content, error=error , task="edit")
+            self.render(
+                "commentpost.html", content=content, error=error, task="edit")
 # Delete Post
 
 
@@ -476,6 +477,7 @@ class EditComment(BlogHandler):
 # end EditComment(BlogHandler)
 
 # Delete Comment
+
 
 class DeleteComment(BlogHandler):
     # retreive values p.post_id
