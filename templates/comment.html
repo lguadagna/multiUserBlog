@@ -4,10 +4,10 @@
      
     <b> comment by   {{p.user}}| {{p.created.strftime("%b %d, %Y")}} </b>
     <div class="post-date">
-    
+        <a class="login-link" href="/blog/editcomment/{{p.key().id()}}" >edit</a>
+
     </div>
  </div>  
-  
   <div class="post-content">
     {{p._render_text | safe}}
   </div>

@@ -162,8 +162,8 @@ class Post(db.Model):
         u = currentUser
         # count number of likes in db on this post and with current logged in
         # user
-        all_likes = db.GqlQuery("select * from Like where user=: user
-                                and post_reference=: post_ref",
+        all_likes = db.GqlQuery("select * from Like where user= :user \
+                                and post_reference= :post_ref",
                                 user=u, post_ref=p.subject)
         # update likes attribute on post
         if all_likes.count() < 1:
@@ -205,10 +205,9 @@ class PostPage(BlogHandler):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
         subject = post.subject
-        s = db.GqlQuery("select * from Comment where post_reference=: subject
+        s = db.GqlQuery("select * from Comment where post_reference= :subject \
                         order by created desc ",
                         subject=subject)
-
         if not post:
             self.error(404)
             return
@@ -253,6 +252,8 @@ class NewPost(BlogHandler):
 class CommentPost(BlogHandler):
 
     def get(self, post_id):
+        if not self.user:
+            return self.redirect('/blog')
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
         if self.user:
@@ -277,6 +278,7 @@ class CommentPost(BlogHandler):
             # created
             c = Comment(parent=blog_key(), post_reference=subject,
                         content=content, user=user, BlogHandler=BlogHandler)
+
             # this is storing the data in the database
             c.put()
             self.redirect('/')
@@ -401,6 +403,79 @@ class EditPost(BlogHandler):
                     error=error)
 
 # end EditPost(BlogHandler)
+
+
+class EditComment(BlogHandler):
+    # retreive values p.post_id
+
+    def get(self, post_id):
+        # user login block from Comment
+        key = db.Key.from_path('Comment', int(post_id), parent=blog_key())
+        comment = db.get(key)
+        if not comment:
+            self.error(404)
+            return
+
+        if self.user:   # if user logged in
+            # not sure this works
+            if self.user.name == comment.user:
+                content = comment.content
+                # lmg - set the user of the post
+                user = self.user
+                self.render(
+                    "commentpost.html", content=content,
+                    post_id=post_id, task="edit")
+            else:
+                # we need to query to display a good front page
+                posts = db.GqlQuery(
+                    "select * from Post order by created desc limit 10")
+                comments = db.GqlQuery(
+                    "select *  from Comment order by created desc ")
+
+                error = "you can only edit your own comments "
+                self.render(
+                    'front.html', posts=posts, comments=comments, error=error)
+
+        else:
+            self.redirect("/login")
+
+    # post required for form input
+    def post(self, comment_id):
+     # user login block from Comment
+        key = db.Key.from_path('Comment', int(comment_id), parent=blog_key())
+        comment = db.get(key)
+        #post_ref = comment.subject
+        # how to refernce post with key: p.key().id())
+        #post = db.GqlQuery("select * from Post where key = :post_ref", post_ref=post_ref)
+        # if not post:
+        #     self.error(404)
+        #     return
+        # subject = post.subject
+        # if not comment:
+        #     self.error(404)
+        #     return
+
+        if not self.user:
+            self.redirect('/login.html')
+            return
+
+        if self.user.name == comment.user:
+
+            content = self.request.get('content')
+            # lmg - set the user of the post
+            user = self.user.name
+            if content:
+                comment.content = content
+                # this is storing the data in the database
+                comment.put()
+                self.redirect('/')
+            else:
+                error = "content, please!"
+                self.render(
+                    "commentpost.html", subject=subject, content=content,
+                    error=error)
+
+# end EditComment(BlogHandler)
 
 
 class LikePost(BlogHandler):
@@ -561,6 +636,7 @@ app = webapp2.WSGIApplication([('/', BlogFront),
                                ('/blog/editpost/([0-9]+)', EditPost),
                                ('/blog/deletepost/([0-9]+)', DeletePost),
                                ('/blog/newcomment/([0-9]+)', CommentPost),
+                               ('/blog/editcomment/([0-9]+)', EditComment),
                                ('/blog/like/([0-9]+)', LikePost)
                                ],
                               debug=True)
